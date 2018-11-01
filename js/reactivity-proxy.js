@@ -14,14 +14,7 @@ class Dep {
   }
 }
 
-let deps = new Map();
-let dataWithoutProxy = data;
-
-Object.keys(data).forEach((key) => {
-  deps.set(key, new Dep());
-});
-
-data = new Proxy(dataWithoutProxy, {
+const traps = {
   get(obj, key) {
     deps.get(key).depend();
     return obj[key];
@@ -31,7 +24,15 @@ data = new Proxy(dataWithoutProxy, {
     deps.get(key).notify();
     return true;
   },
+};
+
+let deps = new Map();
+Object.keys(data).forEach((key) => {
+  deps.set(key, new Dep());
 });
+
+let dataWithoutProxy = data;
+data = new Proxy(dataWithoutProxy, traps);
 
 const watcherInstance = (fun) => {
   target = fun;
